@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Pengguna</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .feedback-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        .feedback-container h2 {
+            margin-bottom: 20px;
+        }
+        .input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .feedback-container button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .feedback-container button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-top: 20px;
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="feedback-container">
+        <h2>Feedback Pengguna</h2>
+        <input class="input" id="nama" placeholder="Nama Anda">
+        <input class="input" id="feedback" placeholder="Masukan Feedback Anda">
+        <button onclick="sendFeedback()">Kirim Feedback</button>
+        <div id="message" class="message"></div>
+        <div id="error" class="error"></div>
+    </div>
+
+    <script>
+        function sendFeedback() {
+            const nama = document.getElementById('nama').value.trim();
+            const feedback = document.getElementById('feedback').value.trim();
+            const messageElement = document.getElementById('message');
+            const errorElement = document.getElementById('error');
+
+            // Validasi input tidak boleh kosong
+            if (!nama || !feedback) {
+                errorElement.innerText = 'Nama dan Feedback tidak boleh kosong!';
+                messageElement.innerText = '';
+                return;
+            }
+
+            const date = new Date().toLocaleDateString('id-ID');
+            const pesan = `Nama: ${nama}\nTanggal: ${date}\nPesan: ${feedback}`;
+            const apiUrl = `https://api.callmebot.com/facebook/send.php?apikey=BEGiIoJFmFGDvQnn&text=${encodeURIComponent(pesan)}`;
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (response.ok) {
+                        messageElement.innerText = 'Feedback berhasil dikirim!';
+                        errorElement.innerText = '';
+                        // Mengosongkan input setelah berhasil dikirim
+                        document.getElementById('nama').value = '';
+                        document.getElementById('feedback').value = '';
+                    } else {
+                        messageElement.innerText = '';
+                        errorElement.innerText = 'Gagal mengirim feedback. Silakan coba lagi.';
+                    }
+                })
+                .catch(error => {
+                    messageElement.innerText = '';
+                    errorElement.innerText = 'Terjadi kesalahan. Silakan coba lagi.';
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+</body>
+</html>
