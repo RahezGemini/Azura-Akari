@@ -10,3 +10,5 @@ Create New Bot
 ## V1.2.10
 
  -fix bug Akari.js
+ -new cmd eval, cmd
+ -new db thread

@@ -4,7 +4,7 @@ module.exports = {
   hady: {
     nama: "gpt", 
     kuldown: 6,
-    peran: 2,
+    peran: 0,
     penulis: "Rahez", 
     tutor: "<answer>"
   },

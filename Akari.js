@@ -26,7 +26,7 @@ global.Ayanokoji = { awalan, nama, admin, logo, aikey, bahasa: nakano, web, main
 
 async function notiferr(notif) {
   try {
-    const oreki = `⚡ 𝗔𝗱𝗮 𝗘𝗿𝗿𝗼𝗿\n\n𝖯𝗋𝗈𝗃𝖾𝖼𝗍: ${nama}\n𝖤𝗋𝗋𝗈𝗿: ${notif}`;
+    const oreki = `⚡ 𝗔𝗱𝗮 𝗘𝗿𝗿𝗼𝗿\n\n𝖯𝗋𝗈𝗃𝖾𝖼𝗍: ${nama}\n𝖤𝗋𝗋𝗈𝗋: ${notif}`;
     await axios.get(`https://api.callmebot.com/facebook/send.php?apikey=${notifkey}&text=${encodeURIComponent(oreki)}`);
   } catch (error) {
     console.log(logo.error + 'Terjadi kesalahan pada notif', error);
@@ -46,9 +46,15 @@ async function getStream(url, filename) {
 }
 
 let data = {};
-const dbPath = path.join('bot', 'database.db');
+const dbPath = path.join('bot', 'user.db');
 if (fs.existsSync(dbPath)) {
   data = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
+}
+
+let threadData = {};
+const threadDbPath = path.join('bot', 'thread.db');
+if (fs.existsSync(threadDbPath)) {
+  threadData = JSON.parse(fs.readFileSync(threadDbPath, 'utf-8'));
 }
 
 function addData(id) {
@@ -82,6 +88,17 @@ function simpan() {
   fs.writeFile(dbPath, JSON.stringify(data, null, 2), err => {
     if (err) console.log(logo.error + "Terjadi kesalahan pada db: ", err);
   });
+}
+
+function saveThreadData(threadID, threadInfo) {
+  threadData[threadID] = threadInfo;
+  fs.writeFile(threadDbPath, JSON.stringify(threadData, null, 2), err => {
+    if (err) console.log(logo.error + "Terjadi kesalahan pada thread db: ", err);
+  });
+}
+
+function ThreadData(threadID) {
+  return threadData[threadID] || null;
 }
 
 function loadC() {
@@ -154,6 +171,8 @@ login({ appState: JSON.parse(akun, zen) }, setting, (err, api) => {
           });
         });
 
+        saveThreadData(event.threadID, threadInfo);
+
         const adminIDs = threadInfo.adminIDs.map(admin => admin.id);
         const files = fs.readdirSync(path.join(__dirname, '/perintah'));
         let commandFound = false;
@@ -170,14 +189,14 @@ login({ appState: JSON.parse(akun, zen) }, setting, (err, api) => {
 
               if (kuldown(event.senderID, hady.nama, hady.kuldown) == 'hadi') {
                 if (hady.peran == 0 || !hady.peran) {
-                  await Ayanokoji({ api, event, args, bhs, getStream, loadC, setUser, getData });
+                  await Ayanokoji({ api, event, args, bhs, getStream, loadC, setUser, getData, ThreadData });
                   return;
                 }
                 if ((hady.peran == 2 || hady.peran == 1) && admin.includes(event.senderID) || hady.peran == 0) {
-                  await Ayanokoji({ api, event, args, bhs, getStream, loadC, setUser, getData });
+                  await Ayanokoji({ api, event, args, bhs, getStream, loadC, setUser, getData, ThreadData });
                   return;
                 } else if (hady.peran == 1 && adminIDs.includes(event.senderID) || hady.peran == 0) {
-                  await Ayanokoji({ api, event, args, bhs, getStream, loadC, setUser, getData });
+                  await Ayanokoji({ api, event, args, bhs, getStream, loadC, setUser, getData, ThreadData });
                   return;
                 } else {
                   api.setMessageReaction("❗", event.messageID);
@@ -209,7 +228,6 @@ app.listen(port, () => {
 app.get('/keep-alive', (req, res) => {
   res.send('Server is alive');
 });
-
 
 app.get('/feedback', (req, res) => {
   res.sendFile(path.join(__dirname, 'hady-zen', 'html', 'feedback.html'));

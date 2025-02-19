@@ -1,24 +1,22 @@
 const axios = require('axios');
-const fs = require('fs');
+const fs = require('fs').promises; // Use promises for better async handling
 const path = require('path');
-const { logo } = require('./hady-zen/log'); // Removed unused 'custom' import
+const { logo } = require('./hady-zen/log');
 
 /**
  * Check if a file exists on the GitHub repository.
- * @param {string} hady - The filename to check.
+ * @param {string} filename - The filename to check.
  * @returns {boolean} - Returns true if the file exists, otherwise false.
  */
-async function kei(hady) {
+async function kei(filename) {
   try {
-    const response = await axios.get(`https://raw.githubusercontent.com/RahezGemimi/Azura-Akari/refs/heads/main/${hady}`);
-    if (response.status === 200) {
-      return true;
-    }
+    const response = await axios.get(`https://raw.githubusercontent.com/RahezGemimi/Azura-Akari/refs/heads/main/${filename}`);
+    return response.status === 200;
   } catch (error) {
     if (error.response && error.response.status === 404) {
-      console.log(logo.error + `File ${hady} bukan file dari ayanokoji.`);
+      console.log(logo.error + `File ${filename} bukan file dari ayanokoji.`);
     } else {
-      console.log(logo.error + `Terjadi kesalahan saat memeriksa file ${hady}: ${error.message}`);
+      console.log(logo.error + `Terjadi kesalahan saat memeriksa file ${filename}: ${error.message}`);
     }
     return false;
   }
@@ -26,23 +24,18 @@ async function kei(hady) {
 
 /**
  * Update a file from the GitHub repository.
- * @param {string} hady - The filename to update.
+ * @param {string} filename - The filename to update.
  */
-async function ayanokoji(hady) {
-  const hadi = await kei(hady);
-  if (!hadi) return;
+async function ayanokoji(filename) {
+  const fileExists = await kei(filename);
+  if (!fileExists) return;
 
   try {
-    const { data } = await axios.get(`https://raw.githubusercontent.com/RahezGemimi/Azura-Akari/refs/heads/main/${hady}`, { responseType: 'arraybuffer' });
-    fs.writeFile(path.join(__dirname, hady), data, 'utf8', (err) => {
-      if (err) {
-        console.log(logo.error + `Gagal memperbarui file ${hady}: ${err.message}`);
-      } else {
-        console.log(logo.update + `Berhasil memperbarui file ${hady}.`);
-      }
-    });
+    const { data } = await axios.get(`https://raw.githubusercontent.com/RahezGemimi/Azura-Akari/refs/heads/main/${filename}`, { responseType: 'arraybuffer' });
+    await fs.writeFile(path.join(__dirname, filename), data);
+    console.log(logo.update + `Berhasil memperbarui file ${filename}.`);
   } catch (error) {
-    console.log(logo.error + `Gagal mengunduh file ${hady}: ${error.message}`);
+    console.log(logo.error + `Gagal memperbarui file ${filename}: ${error.message}`);
   }
 }
 
@@ -51,40 +44,40 @@ async function ayanokoji(hady) {
  */
 async function kiyotaka() {
   try {
-    const packageData = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+    // Read local package.json
+    const packageData = JSON.parse(await fs.readFile(path.join(__dirname, 'package.json'), 'utf8'));
     const { version } = packageData;
 
-    const { data } = await axios.get('https://raw.githubusercontent.com/RahezGemimi/Azura-Akari/refs/heads/main/package.json');
+    // Fetch remote package.json
+    const { data: remotePackageData } = await axios.get('https://raw.githubusercontent.com/RahezGemimi/Azura-Akari/refs/heads/main/package.json');
 
     if (!version) {
       console.log(logo.error + 'Versi tidak ditemukan, pembaruan dibatalkan.');
       return;
     }
-    if (version === data.version) {
+    if (version === remotePackageData.version) {
       console.log(logo.update + 'Kamu sudah menggunakan versi terbaru.');
       return;
     }
 
-    fs.readdir(__dirname, (err, files) => {
-      if (err) {
-        console.log(logo.error + `Gagal membaca direktori: ${err.message}`);
-        return;
-      }
+    // Read the current directory
+    const files = await fs.readdir(__dirname);
 
-      files.forEach((file) => {
-        if (file !== 'kiyotaka.json' && file !== 'account.txt') {
-          fs.stat(path.join(__dirname, file), (err, stats) => {
-            if (err) {
-              console.log(logo.error + `Gagal memeriksa status file ${file}: ${err.message}`);
-              return;
-            }
-            if (stats.isFile()) {
-              ayanokoji(file);
-            }
-          });
+    // Filter and update files concurrently
+    const updatePromises = files
+      .filter((file) => file !== 'kiyotaka.json' && file !== 'account.txt')
+      .map(async (file) => {
+        try {
+          const stats = await fs.stat(path.join(__dirname, file));
+          if (stats.isFile()) {
+            await ayanokoji(file);
+          }
+        } catch (error) {
+          console.log(logo.error + `Gagal memeriksa status file ${file}: ${error.message}`);
         }
       });
-    });
+
+    await Promise.all(updatePromises); // Wait for all updates to complete
   } catch (error) {
     console.log(logo.error + `Terjadi kesalahan saat memeriksa pembaruan: ${error.message}`);
   }
