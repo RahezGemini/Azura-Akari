@@ -210,9 +210,6 @@ app.get('/keep-alive', (req, res) => {
   res.send('Server is alive');
 });
 
-app.get('/status', (req, res) => {
-  res.json({ status: 'Server Ok', web });
-});
 
 app.get('/feedback', (req, res) => {
   res.sendFile(path.join(__dirname, 'hady-zen', 'html', 'feedback.html'));
@@ -240,9 +237,3 @@ app.get('/gemini', async (req, res) => {
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'hady-zen', 'html', '404.html'));
 });
-
-setInterval(() => {
-  axios.get(`${web}/keep-alive`)
-    .then(response => console.log('Keep-alive response:', response.data))
-    .catch(error => console.error('Error keeping server alive:', error));
-}, 5 * 60 * 1000);
