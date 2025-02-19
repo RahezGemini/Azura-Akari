@@ -3,11 +3,11 @@
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const { custom, logo } = require('./hady-zen/log');
+const { custom, logo } = require('./deshboard/log');
 
 async function kei(hady) {
   try {
-    const response = await axios.get(`https://raw.githubusercontent.com/HadyZen/Ayanokoji-Kiyotaka/refs/heads/main/${hady}`);
+    const response = await axios.get(`https://raw.githubusercontent.com/RahezGemimi/Azura-Akari/refs/heads/main/${hady}`);
     if (response.status === 200) {
       return true;
     }
@@ -25,7 +25,7 @@ async function ayanokoji(hady) {
   const hadi = await kei(hady);
   if (!hadi) return;
   
-  const { data } = await axios.get(`https://raw.githubusercontent.com/HadyZen/Ayanokoji-Kiyotaka/refs/heads/main/${hady}`, { responseType: 'arraybuffer' });
+  const { data } = await axios.get(`https://raw.githubusercontent.com/RahezGemini/Azura-Akari/refs/heads/main/${hady}`, { responseType: 'arraybuffer' });
   fs.writeFile(path.join(__dirname, hady), data, 'utf8', (err) => {
     if (err) {
       console.log(logo.error + `Gagal memperbarui file ${hady}.`);
@@ -39,7 +39,7 @@ async function kiyotaka() {
   const packageData = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
   const { version } = packageData;
 
-  const { data } = await axios.get('https://raw.githubusercontent.com/HadyZen/Ayanokoji-Kiyotaka/refs/heads/main/package.json');
+  const { data } = await axios.get('https://raw.githubusercontent.com/RahezGemini/Azura-Akari/refs/heads/main/package.json');
 
   if (!version) {
     console.log(logo.error + 'Versi tidak ditemukan, pembaruan dibatalkan.');

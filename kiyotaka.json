@@ -4,14 +4,14 @@
   "port": 8080,
   "proxy": "103.179.217.242",
   "bahasa": "id",
-  "database": "JSON", *MASIH TAHAP PENGEMBANGAN*
+  "database": "json", 
   "uptime": "apikey uptimerobot.com",
   "notifkey": "BEGiIoJFmFGDvQnn",
   "aikey": "AIzaSyAXBvwNkZBckC8b3vTZVVuwRwlsPttTgkA",
   "chatdm": true,
   "maintain": false,
   "zonawaktu": "Asia/Jakarta", 
-  "admin": ["100090298542452"], *ADMIN IDS*
+  "admin": ["100090298542452"], 
   "setting": {
     "forceLogin": true,
     "listenEvents": true,
